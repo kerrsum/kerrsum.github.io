@@ -1,0 +1,12 @@
+{
+  "note": "当前版本按固定命名规则直接读取音频，此文件预留备用。",
+  "folder": "grade3_upper",
+  "units": [
+    "Unit 1",
+    "Unit 2",
+    "Unit 3",
+    "Unit 4",
+    "Unit 5",
+    "Unit 6"
+  ]
+}
