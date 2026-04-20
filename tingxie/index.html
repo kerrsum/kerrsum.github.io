@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>葛老师AI单词听写</title>
+  <style>
+    :root{
+      --bg1:#fbf8ff;
+      --bg2:#f7f3ff;
+      --bg3:#eef6ff;
+      --card:#ffffffee;
+      --line:#ece7fb;
+      --primary:#7c69ff;
+      --primary-dark:#6d5bf0;
+      --text:#2f2f35;
+      --muted:#7d7794;
+      --soft:#faf7ff;
+      --danger:#ffb4b4;
+      --warning:#fff2ca;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      min-height:100vh;
+      background:linear-gradient(to bottom,var(--bg1),var(--bg2),var(--bg3));
+      color:var(--text);
+    }
+    .app{max-width:460px;margin:0 auto;padding:16px 16px 110px}
+    .card{
+      background:var(--card);
+      border-radius:28px;
+      box-shadow:0 12px 30px rgba(124,105,255,.12);
+      overflow:hidden;
+      border:none;
+    }
+    .hero{
+      padding:24px;
+      background:linear-gradient(90deg,#fff4df,#f8f1ff,#eef7ff);
+    }
+    .content{padding:20px}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+      background:#fff;
+      color:var(--primary);
+    }
+    h1,h2,h3,p{margin:0}
+    h1{font-size:30px;line-height:1.2}
+    h2{font-size:26px;line-height:1.2}
+    p.sub{margin-top:10px;color:#756f8a;line-height:1.7;font-size:14px}
+    .section{margin-top:16px}
+    .btn{
+      width:100%;
+      height:52px;
+      border:none;
+      border-radius:20px;
+      background:var(--primary);
+      color:#fff;
+      font-size:16px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn:hover{background:var(--primary-dark)}
+    .btn.outline{
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+    .btn.soft{
+      background:#f5f2ff;
+      color:#5748b6;
+    }
+    .btn.warn{
+      background:var(--danger);
+      color:#fff;
+    }
+    .btn.small{
+      height:38px;
+      font-size:14px;
+      border-radius:16px;
+      padding:0 14px;
+      width:auto;
+    }
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .stack{display:flex;flex-direction:column;gap:12px}
+    .box{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:22px;
+      padding:14px;
+    }
+    .softbox{
+      border-radius:22px;
+      background:var(--soft);
+      padding:16px;
+    }
+    .center{text-align:center}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .tiny{font-size:11px}
+    .stats{
+      display:flex;justify-content:space-between;color:#8d86a4;font-size:14px;
+    }
+    select,textarea,input[type="text"],input[type="password"]{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      font-size:14px;
+      outline:none;
+      background:#fcfbff;
+      color:var(--text);
+    }
+    textarea{min-height:120px;resize:vertical}
+    .list{
+      display:flex;flex-direction:column;gap:10px;max-height:360px;overflow:auto;padding-right:4px;
+    }
+    .word-item{
+      display:flex;justify-content:space-between;gap:10px;
+      padding:14px;border-radius:18px;border:1px solid var(--line);background:#fff;cursor:pointer;
+    }
+    .word-item.selected{background:#f5f2ff;border-color:var(--primary)}
+    .word-item .w{font-weight:700}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;
+    }
+    .pill{
+      background:var(--warning);
+      color:#7e6200;
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .progress-wrap{height:12px;background:#ece6ff;border-radius:999px;overflow:hidden}
+    .progress{height:100%;background:linear-gradient(90deg,#7c69ff,#9a8bff);width:0%}
+    .mode-card{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:22px;
+      padding:14px;
+      cursor:pointer;
+    }
+    .mode-card.active{background:#f4f1ff;border-color:var(--primary)}
+    canvas{
+      width:100%;height:260px;background:#fff;border-radius:20px;touch-action:none;
+      display:block;
+    }
+    .canvas-wrap{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:24px;
+      padding:12px;
+      box-shadow:0 4px 12px rgba(124,105,255,.05);
+    }
+    .bottom-nav{
+      position:fixed;left:0;right:0;bottom:0;
+      border-top:1px solid var(--line);background:rgba(255,255,255,.95);
+      backdrop-filter:blur(8px);padding:12px 16px;z-index:40;
+    }
+    .bottom-nav .inner{max-width:460px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .hidden{display:none!important}
+    .row{display:flex;gap:10px}
+    .row>*{flex:1}
+    .scroll{max-height:420px;overflow:auto;padding-right:4px}
+    .review-item,.result-item,.wrong-item{
+      border:1px solid var(--line);background:#fcfbff;border-radius:20px;padding:14px;
+    }
+    .ok{background:#f5fff7;border-color:#d9f2df}
+    .bad{background:#fff7f7;border-color:#f5dede}
+    .pet-emoji{
+      font-size:82px;cursor:pointer;user-select:none;transition:transform .25s ease;
+      display:inline-block;
+    }
+    .pet-emoji.anim{transform:translateY(-8px) scale(1.1)}
+    .bubble{
+      display:inline-block;padding:10px 14px;background:#fff;border:1px solid var(--line);
+      border-radius:999px;font-size:14px;color:#6f6788;box-shadow:0 6px 14px rgba(0,0,0,.08);margin-bottom:10px;
+    }
+    .overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;
+      padding:16px;z-index:100;
+    }
+    .dialog{width:100%;max-width:420px;background:#fff;border-radius:26px;padding:18px;box-shadow:0 18px 40px rgba(0,0,0,.22)}
+    .preview-img{width:100%;border-radius:16px;background:#fff}
+    .login{
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;
+    }
+    .tag{display:inline-block;padding:4px 10px;border-radius:999px;background:#f7f2ff;color:#7766cf;font-size:13px;font-weight:700}
+    .notice{font-size:12px;color:#9b94b0;line-height:1.7;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div id="loginPage" class="login">
+    <div class="app" style="padding-bottom:16px">
+      <div class="card">
+        <div class="hero">
+          <div class="badge">🔒 访问入口</div>
+          <h1 style="margin-top:14px">葛老师AI单词听写</h1>
+          <p class="sub">这是可直接部署到 Netlify 的单文件版本。先输入访问密码，再进入小程序。</p>
+        </div>
+        <div class="content stack">
+          <div class="box">
+            <div class="small muted" style="margin-bottom:8px">请输入访问密码</div>
+            <input id="passwordInput" type="password" placeholder="请输入密码" />
+            <div class="notice">
+              当前默认密码：<b>123456</b><br>
+              你后面可以直接在这个 HTML 文件里搜索 <b>APP_PASSWORD</b> 修改成你自己的密码。<br>
+              这个密码门是“基础防护”，能挡住随手转发，但不是专业级防盗版。
+            </div>
+          </div>
+          <button class="btn" id="loginBtn">进入小程序</button>
+          <div id="loginError" class="small" style="color:#b53b3b;display:none">密码不对，请重新输入。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="appPage" class="hidden">
+    <div class="app">
+      <div id="topBar" class="topbar hidden">
+        <button class="btn outline small" id="homeBtnTop">🏠 首页</button>
+        <div class="pill">⭐ <span id="pointsTop">100</span></div>
+      </div>
+
+      <div id="page-home" class="page">
+        <div class="card">
+          <div class="hero">
+            <div class="badge">✨ 葛老师AI提效 · 听写更省心</div>
+            <h1 style="margin-top:14px">AI单词听写</h1>
+            <p class="sub">一键开始听写，减少家长陪学成本。</p>
+          </div>
+          <div class="content stack">
+            <div class="softbox center">
+              <p class="muted" style="font-size:18px">今天要听写哪些单词？</p>
+            </div>
+            <button class="btn" id="goBuiltin">📘 课本单词听写</button>
+            <button class="btn outline" id="goManual">✍️ 自定义单词听写</button>
+            <div class="stats">
+              <div>积分：<span id="pointsHome">100</span></div>
+              <div>错词：<span id="wrongCountHome">0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-setup" class="page hidden">
+        <div class="card">
+          <div class="hero">
+            <h2>选择单词</h2>
+            <p class="sub" id="setupDesc"></p>
+          </div>
+          <div class="content stack">
+            <div class="box">
+              <div id="builtinSetup">
+                <div class="grid2">
+                  <div class="box" style="padding:12px">
+                    <div class="tiny muted" style="margin-bottom:6px">教材</div>
+                    <select id="bookSelect"></select>
+                  </div>
+                  <div class="box" style="padding:12px">
+                    <div class="tiny muted" style="margin-bottom:6px">单元</div>
+                    <select id="unitSelect"></select>
+                  </div>
+                </div>
+                <div class="section">
+                  <button class="btn small" id="loadBuiltinBtn">生成单词表</button>
+                </div>
+              </div>
+              <div id="manualSetup" class="hidden">
+                <textarea id="manualInput">beside 在……旁边
+bridge 桥
+market 市场
+winter 冬天
+through 穿过</textarea>
+                <div class="section">
+                  <button class="btn small" id="parseManualBtn">生成单词表</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="box">
+              <div class="stats" style="margin-bottom:10px">
+                <div>单词表</div>
+                <div>已选 <span id="selectedCount">0</span> / <span id="totalCount">0</span></div>
+              </div>
+              <div class="toolbar" style="margin-bottom:10px">
+                <button class="btn outline small" id="selectAllBtn">全选</button>
+                <button class="btn outline small" id="clearAllBtn">取消全选</button>
+              </div>
+              <div id="wordList" class="list"></div>
+            </div>
+
+            <button class="btn" id="toModeBtn">🚀 下一步</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-mode" class="page hidden">
+        <div class="card">
+          <div class="hero">
+            <div class="badge">✨ 选择听写方式</div>
+            <h2 style="margin-top:14px">本次怎么听写？</h2>
+            <p class="sub">先确认听写方式和输入方式，再正式开始。</p>
+          </div>
+          <div class="content stack">
+            <div class="grid2">
+              <div class="mode-card active" id="mode-en">
+                <div style="font-weight:700">英文 + 中文</div>
+                <div class="small muted" style="margin-top:4px">先读单词，再读中文意思</div>
+              </div>
+              <div class="mode-card" id="mode-cn">
+                <div style="font-weight:700">只读中文</div>
+                <div class="small muted" style="margin-top:4px">更像课堂真实听写</div>
+              </div>
+            </div>
+            <div class="grid2">
+              <div class="mode-card active" id="input-draw">
+                <div style="font-weight:700">✍️ 手写输入</div>
+                <div class="small muted" style="margin-top:4px">更适合手机和平板</div>
+              </div>
+              <div class="mode-card" id="input-type">
+                <div style="font-weight:700">⌨️ 键盘输入</div>
+                <div class="small muted" style="margin-top:4px">更适合电脑端</div>
+              </div>
+            </div>
+            <div class="softbox small muted">本次将听写 <b id="modeWordCount">0</b> 个单词，开始时会随机打乱顺序。</div>
+            <button class="btn" id="startWriteBtn">开始听写</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-write" class="page hidden">
+        <div class="stack">
+          <div class="progress-wrap"><div id="progressBar" class="progress"></div></div>
+          <div class="card">
+            <div class="content stack">
+              <div class="stats">
+                <div>
+                  <h2 style="font-size:28px">听写单词</h2>
+                  <p class="sub" style="margin-top:4px" id="writeIndexText">第 1 / 1 个</p>
+                </div>
+                <div class="tag" id="inputTag">手写</div>
+              </div>
+
+              <div class="softbox">
+                <div class="toolbar">
+                  <button class="btn small soft" id="playBtn">🔊 播放听写</button>
+                  <button class="btn outline small" id="clearCanvasBtn">🔄 清空重写</button>
+                </div>
+                <p class="tiny muted" style="margin-top:10px" id="writeHint">先听，再在下方手写区默写单词。</p>
+              </div>
+
+              <div id="drawArea" class="canvas-wrap">
+                <canvas id="drawCanvas"></canvas>
+                <div class="tiny muted center" style="margin-top:8px">请在上方区域手写单词</div>
+              </div>
+
+              <div id="typeArea" class="hidden">
+                <input id="typedInput" type="text" placeholder="请输入单词" />
+              </div>
+
+              <div class="softbox">
+                <div class="row">
+                  <button class="btn outline" id="prevBtn">上一题</button>
+                  <button class="btn" id="nextBtn">下一个</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-review" class="page hidden">
+        <div class="card">
+          <div class="content stack">
+            <h2>核对单词</h2>
+            <p class="sub">请根据你的手写结果，逐个核对本轮单词。对的记积分，错的进错词本。</p>
+            <div class="scroll" id="reviewList"></div>
+            <button class="btn" id="finishReviewBtn">完成核对</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-result" class="page hidden">
+        <div class="card">
+          <div class="content stack center">
+            <div style="font-size:58px">🎉</div>
+            <div>
+              <h2>本轮听写完成</h2>
+              <p class="sub">答对的单词每个记 2 分，答错的会进入错词本。</p>
+            </div>
+            <div class="softbox" style="background:#fff6d8;color:#7d6000">当前积分：<span id="resultPoints">100</span></div>
+            <div class="softbox" style="background:#fff4f4;color:#b53b3b">错词本：<span id="resultWrongCount">0</span></div>
+            <div id="resultDetailWrap" class="box hidden" style="text-align:left">
+              <div class="small muted" style="margin-bottom:10px">本轮对错明细</div>
+              <div class="scroll" id="resultList" style="max-height:240px"></div>
+            </div>
+            <button class="btn" id="resultHomeBtn">返回首页</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-wrongbook" class="page hidden">
+        <div class="card">
+          <div class="hero" style="background:linear-gradient(90deg,#fff4f4,#fff7f7,#fff1f1)">
+            <div class="badge" style="color:#c24a4a">📒 错词本专项练习</div>
+            <h2 style="margin-top:14px">错词本</h2>
+            <p class="sub" style="color:#8d6d74">集中查看和重复练习之前听写错误的单词。</p>
+          </div>
+          <div class="content stack">
+            <div id="wrongbookEmpty" class="softbox center muted">目前还没有错词，继续加油～</div>
+            <div id="wrongbookList" class="list hidden"></div>
+            <button class="btn warn hidden" id="practiceWrongBtn">🔁 再练一轮错词</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-pet" class="page hidden">
+        <div class="card">
+          <div class="hero">
+            <div class="badge">🐣 积分 / 宠物</div>
+            <h2 style="margin-top:14px">积分与宠物</h2>
+            <p class="sub">听写获得积分后，可以用积分喂养你的宠物。</p>
+          </div>
+          <div class="content stack">
+            <div class="softbox center">
+              <div id="petBubble" class="bubble hidden"></div>
+              <div id="petEmoji" class="pet-emoji">🐣</div>
+              <div style="font-size:18px;font-weight:700;margin-top:10px" id="petNameText">小鸡</div>
+              <div class="small muted" style="margin-top:4px" id="petStatusText">状态正常</div>
+            </div>
+            <div class="box">
+              <div class="stats">
+                <span>当前积分</span>
+                <span style="font-size:24px;font-weight:700;color:#5a49b8" id="petPoints">100</span>
+              </div>
+              <div style="margin-top:12px">
+                <div class="small muted" style="margin-bottom:6px">饱腹值</div>
+                <div class="progress-wrap"><div id="petMoodBar" class="progress"></div></div>
+              </div>
+            </div>
+            <button class="btn" id="feedPetBtn">🍎 喂食（消耗 10 积分）</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="inner">
+        <button class="btn outline" id="navHome">首页</button>
+        <button class="btn outline" id="navWrong">错词本</button>
+        <button class="btn outline" id="navPet">积分/宠物</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="previewOverlay" class="overlay hidden">
+    <div class="dialog">
+      <div class="stats" style="margin-bottom:12px">
+        <div>
+          <div style="font-size:18px;font-weight:700">查看我写的单词</div>
+          <div class="small muted" id="previewTitle"></div>
+        </div>
+        <button class="btn outline small" id="closePreviewBtn">关闭</button>
+      </div>
+      <div class="box" style="background:#faf7ff">
+        <img id="previewImg" class="preview-img hidden" alt="" />
+        <div id="previewEmpty" class="center muted" style="height:260px;display:flex;align-items:center;justify-content:center">这一题还没有可查看的手写内容</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmOverlay" class="overlay hidden">
+    <div class="dialog">
+      <div style="font-size:18px;font-weight:700">是否结束当前听写任务？</div>
+      <div class="sub" style="margin-top:6px">结束后会返回首页，本轮尚未完成的听写不会继续保留。</div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn outline" id="cancelExitBtn">取消</button>
+        <button class="btn" id="confirmExitBtn">结束并返回</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ========= 你可以改这里 ========= */
+const APP_PASSWORD = "123456";
+/* =============================== */
+
+const textbookOptions = {
+  "小学三年级上册": {
+    "Unit 1": [
+      { word: "name", meaning: "名字", selected: true },
+      { word: "nice", meaning: "令人愉快的、友好的", selected: true },
+      { word: "ear", meaning: "耳朵", selected: true },
+      { word: "hand", meaning: "手", selected: true },
+      { word: "eye", meaning: "眼睛", selected: true },
+      { word: "mouth", meaning: "嘴", selected: true },
+      { word: "arm", meaning: "胳膊", selected: true },
+      { word: "can", meaning: "可以", selected: true },
+      { word: "share", meaning: "分享", selected: true },
+      { word: "smile", meaning: "微笑、笑", selected: true },
+      { word: "listen", meaning: "听、倾听", selected: true },
+      { word: "help", meaning: "帮助", selected: true },
+      { word: "say", meaning: "说、讲", selected: true },
+      { word: "friend", meaning: "朋友", selected: true },
+      { word: "good", meaning: "好的", selected: true }
+    ],
+    "Unit 2": [
+      { word: "mum", meaning: "妈妈", selected: true },
+      { word: "dad", meaning: "爸爸", selected: true },
+      { word: "grandma", meaning: "奶奶", selected: true },
+      { word: "grandpa", meaning: "爷爷", selected: true },
+      { word: "grandfather", meaning: "祖父", selected: true },
+      { word: "grandmother", meaning: "祖母", selected: true },
+      { word: "mother", meaning: "母亲", selected: true },
+      { word: "father", meaning: "父亲", selected: true },
+      { word: "me", meaning: "我", selected: true },
+      { word: "sister", meaning: "姐/妹", selected: true },
+      { word: "family", meaning: "家/家庭", selected: true },
+      { word: "have", meaning: "有", selected: true },
+      { word: "big", meaning: "大的", selected: true },
+      { word: "cousin", meaning: "堂/表兄弟", selected: true },
+      { word: "brother", meaning: "哥/弟", selected: true },
+      { word: "baby", meaning: "婴儿", selected: true },
+      { word: "uncle", meaning: "伯父/叔父", selected: true },
+      { word: "aunt", meaning: "伯母/婶母", selected: true },
+      { word: "small", meaning: "小的", selected: true }
+    ],
+    "Unit 3": [
+      { word: "like", meaning: "喜欢", selected: true },
+      { word: "dog", meaning: "狗", selected: true },
+      { word: "pet", meaning: "宠物", selected: true },
+      { word: "cat", meaning: "猫", selected: true },
+      { word: "fish", meaning: "鱼、鱼肉", selected: true },
+      { word: "bird", meaning: "鸟", selected: true },
+      { word: "rabbit", meaning: "兔", selected: true },
+      { word: "go", meaning: "去、走", selected: true },
+      { word: "zoo", meaning: "动物园", selected: true },
+      { word: "fox", meaning: "狐狸", selected: true },
+      { word: "Miss", meaning: "老师、女士", selected: true },
+      { word: "panda", meaning: "大熊猫", selected: true },
+      { word: "red", meaning: "红色", selected: true },
+      { word: "cute", meaning: "可爱的", selected: true },
+      { word: "monkey", meaning: "猴子", selected: true },
+      { word: "tiger", meaning: "老虎", selected: true },
+      { word: "elephant", meaning: "大象", selected: true },
+      { word: "lion", meaning: "狮子", selected: true },
+      { word: "animal", meaning: "动物", selected: true },
+      { word: "giraffe", meaning: "长颈鹿", selected: true },
+      { word: "tall", meaning: "高的", selected: true },
+      { word: "fast", meaning: "快的", selected: true }
+    ],
+    "Unit 4": [
+      { word: "apple", meaning: "苹果", selected: true },
+      { word: "banana", meaning: "香蕉", selected: true },
+      { word: "farm", meaning: "农场", selected: true },
+      { word: "air", meaning: "空气", selected: true },
+      { word: "orange", meaning: "橙子、柑橘", selected: true },
+      { word: "grape", meaning: "葡萄", selected: true },
+      { word: "school", meaning: "学校", selected: true },
+      { word: "garden", meaning: "花园", selected: true },
+      { word: "need", meaning: "需要", selected: true },
+      { word: "water", meaning: "给……浇水", selected: true },
+      { word: "flower", meaning: "花、花朵", selected: true },
+      { word: "grass", meaning: "草、草地", selected: true },
+      { word: "plant", meaning: "种植、植物", selected: true },
+      { word: "new", meaning: "新的", selected: true },
+      { word: "tree", meaning: "树", selected: true },
+      { word: "sun", meaning: "阳光、太阳", selected: true },
+      { word: "give", meaning: "给", selected: true },
+      { word: "them", meaning: "它们、他们、她们", selected: true }
+    ],
+    "Unit 5": [
+      { word: "colour", meaning: "颜色", selected: true },
+      { word: "orange", meaning: "橙红色；橙红色的", selected: true },
+      { word: "green", meaning: "绿色；绿色的", selected: true },
+      { word: "red", meaning: "红色；红色的", selected: true },
+      { word: "blue", meaning: "蓝色；蓝色的", selected: true },
+      { word: "make", meaning: "使出现；做", selected: true },
+      { word: "purple", meaning: "紫色；紫色的", selected: true },
+      { word: "brown", meaning: "棕色；棕色的", selected: true },
+      { word: "bear", meaning: "熊", selected: true },
+      { word: "yellow", meaning: "黄色；黄色的", selected: true },
+      { word: "duck", meaning: "鸭", selected: true },
+      { word: "sea", meaning: "海；海洋", selected: true },
+      { word: "some", meaning: "一些", selected: true },
+      { word: "pink", meaning: "粉色；粉色的", selected: true },
+      { word: "draw", meaning: "画", selected: true },
+      { word: "white", meaning: "白色；白色的", selected: true },
+      { word: "black", meaning: "黑色；黑色的", selected: true }
+    ],
+    "Unit 6": [
+      { word: "old", meaning: "（多少）岁；年纪；旧的", selected: true },
+      { word: "five", meaning: "五", selected: true },
+      { word: "year", meaning: "年纪；年", selected: true },
+      { word: "one", meaning: "一", selected: true },
+      { word: "two", meaning: "二", selected: true },
+      { word: "three", meaning: "三", selected: true },
+      { word: "four", meaning: "四", selected: true },
+      { word: "ten", meaning: "十", selected: true },
+      { word: "six", meaning: "六", selected: true },
+      { word: "seven", meaning: "七", selected: true },
+      { word: "eight", meaning: "八", selected: true },
+      { word: "nine", meaning: "九", selected: true },
+      { word: "o'clock", meaning: "（表示整点）……点钟", selected: true },
+      { word: "cut", meaning: "切块", selected: true },
+      { word: "eat", meaning: "吃", selected: true },
+      { word: "cake", meaning: "蛋糕", selected: true }
+    ]
+  },
+  "小学三年级下册": {
+    "Unit 1": [
+      { word: "where", meaning: "在哪里、到哪里", selected: true },
+      { word: "from", meaning: "来自、从……来", selected: true },
+      { word: "about", meaning: "大约、左右", selected: true },
+      { word: "today", meaning: "今天", selected: true },
+      { word: "teacher", meaning: "教师", selected: true },
+      { word: "student", meaning: "学生", selected: true },
+      { word: "after", meaning: "在……后面", selected: true },
+      { word: "who", meaning: "谁、什么人", selected: true },
+      { word: "girl", meaning: "女孩", selected: true },
+      { word: "neighbour", meaning: "邻居", selected: true },
+      { word: "boy", meaning: "男孩", selected: true },
+      { word: "woman", meaning: "成年女子、妇女", selected: true },
+      { word: "man", meaning: "成年男子、男人", selected: true },
+      { word: "Mr", meaning: "先生", selected: true },
+      { word: "classmate", meaning: "同班同学", selected: true },
+      { word: "he", meaning: "他", selected: true },
+      { word: "English", meaning: "英语的、英语", selected: true },
+      { word: "she", meaning: "她", selected: true },
+      { word: "very", meaning: "很、非常、十分", selected: true },
+      { word: "UK", meaning: "英国", selected: true },
+      { word: "China", meaning: "中国", selected: true },
+      { word: "USA", meaning: "美国", selected: true }
+    ],
+    "Unit 2": [
+      { word: "has", meaning: "有", selected: true },
+      { word: "long", meaning: "长的", selected: true },
+      { word: "body", meaning: "身体", selected: true },
+      { word: "short", meaning: "短的", selected: true },
+      { word: "leg", meaning: "腿", selected: true },
+      { word: "right", meaning: "正确的", selected: true },
+      { word: "fat", meaning: "肥胖的", selected: true },
+      { word: "thin", meaning: "瘦的", selected: true },
+      { word: "slow", meaning: "缓慢的", selected: true },
+      { word: "love", meaning: "喜爱", selected: true },
+      { word: "tail", meaning: "尾巴", selected: true },
+      { word: "her", meaning: "她的", selected: true },
+      { word: "gift", meaning: "礼物", selected: true },
+      { word: "picture", meaning: "图画", selected: true },
+      { word: "card", meaning: "卡片", selected: true },
+      { word: "sing", meaning: "唱歌", selected: true },
+      { word: "dance", meaning: "跳舞", selected: true },
+      { word: "face", meaning: "脸", selected: true },
+      { word: "all", meaning: "所有", selected: true },
+      { word: "so", meaning: "这么", selected: true },
+      { word: "talk", meaning: "说话", selected: true },
+      { word: "song", meaning: "歌曲", selected: true },
+      { word: "or", meaning: "或者", selected: true },
+      { word: "much", meaning: "许多", selected: true }
+    ],
+    "Unit 3": [],
+    "Unit 4": [
+      { word: "breakfast", meaning: "早餐", selected: true },
+      { word: "lunch", meaning: "午餐", selected: true },
+      { word: "dinner", meaning: "晚餐", selected: true },
+      { word: "food", meaning: "食物", selected: true },
+      { word: "drink", meaning: "喝；饮料", selected: true },
+      { word: "take", meaning: "拿；乘坐", selected: true },
+      { word: "eat", meaning: "吃", selected: true },
+      { word: "juice", meaning: "果汁", selected: true },
+      { word: "milk", meaning: "牛奶", selected: true },
+      { word: "water", meaning: "水", selected: true },
+      { word: "hungry", meaning: "饥饿的", selected: true },
+      { word: "thirsty", meaning: "口渴的", selected: true },
+      { word: "use", meaning: "使用", selected: true },
+      { word: "chopsticks", meaning: "筷子", selected: true },
+      { word: "want", meaning: "想要", selected: true },
+      { word: "delicious", meaning: "美味的", selected: true },
+      { word: "yummy", meaning: "好吃的，美味的", selected: true }
+    ],
+    "Unit 5": [
+      { word: "at", meaning: "在（某处）", selected: true },
+      { word: "boat", meaning: "小船，舟", selected: true },
+      { word: "cool", meaning: "酷的，绝妙的", selected: true },
+      { word: "keep", meaning: "保有，留着", selected: true },
+      { word: "home", meaning: "家，住所", selected: true },
+      { word: "ball", meaning: "球", selected: true },
+      { word: "doll", meaning: "玩偶，玩具娃娃", selected: true },
+      { word: "car", meaning: "小汽车，轿车", selected: true },
+      { word: "on", meaning: "在……上面", selected: true },
+      { word: "shelf", meaning: "架子", selected: true },
+      { word: "in", meaning: "在……里面", selected: true },
+      { word: "box", meaning: "盒子", selected: true },
+      { word: "cap", meaning: "帽子", selected: true },
+      { word: "map", meaning: "地图", selected: true },
+      { word: "under", meaning: "在……下面", selected: true },
+      { word: "still", meaning: "仍然，还", selected: true },
+      { word: "put", meaning: "放，安置", selected: true }
+    ],
+    "Unit 6": [
+      { word: "fifteen", meaning: "十五", selected: true },
+      { word: "twelve", meaning: "十二", selected: true },
+      { word: "fourteen", meaning: "十四", selected: true },
+      { word: "thirteen", meaning: "十三", selected: true },
+      { word: "eleven", meaning: "十一", selected: true },
+      { word: "twenty", meaning: "二十", selected: true },
+      { word: "seventeen", meaning: "十七", selected: true },
+      { word: "sixteen", meaning: "十六", selected: true },
+      { word: "eighteen", meaning: "十八", selected: true },
+      { word: "nineteen", meaning: "十九", selected: true },
+      { word: "piggy bank", meaning: "猪形储钱罐", selected: true },
+      { word: "pay", meaning: "付费", selected: true },
+      { word: "back", meaning: "回到原处", selected: true }
+    ]
+  },
+  "小学四年级上册": {"Unit 1":[],"Unit 2":[],"Unit 3":[],"Unit 4":[],"Unit 5":[],"Unit 6":[]},
+  "小学四年级下册": {"Unit 1":[],"Unit 2":[],"Unit 3":[],"Unit 4":[],"Unit 5":[],"Unit 6":[]},
+  "小学五年级上册": {"Unit 1":[],"Unit 2":[],"Unit 3":[],"Unit 4":[],"Unit 5":[],"Unit 6":[]},
+  "小学五年级下册": {"Unit 1":[],"Unit 2":[],"Unit 3":[],"Unit 4":[],"Unit 5":[],"Unit 6":[]}
+};
+
+const state = {
+  page: "home",
+  setupMode: "builtin",
+  book: "小学三年级下册",
+  unit: "Unit 1",
+  mode: "en",
+  inputMode: "draw",
+  words: JSON.parse(JSON.stringify(textbookOptions["小学三年级下册"]["Unit 1"])),
+  inputText: "",
+  index: 0,
+  typed: "",
+  typedAnswers: {},
+  quizWords: [],
+  reviewResults: {},
+  points: 100,
+  petName: "小鸡",
+  petMood: 50,
+  petMessage: "",
+  petAnimating: false,
+  wrongWords: [],
+  mastery: {},
+  handwrittenShots: {},
+  previewWord: null,
+  drawHasInk: false
+};
+
+const STORAGE_KEYS = {
+  points: "ai_word_dictation_points",
+  wrongWords: "ai_word_dictation_wrong_words",
+  mastery: "ai_word_dictation_mastery",
+  petName: "ai_word_dictation_pet_name",
+  petMood: "ai_word_dictation_pet_mood",
+  authed: "ai_word_dictation_authed"
+};
+
+function $(id){ return document.getElementById(id); }
+function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+function shuffleArray(list){
+  const arr = [...list];
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+let currentPromptAudio = null;
+let promptPlayToken = 0;
+
+const fixedAudioBookFolderMap = {
+  "小学三年级上册": "grade3_upper",
+  "小学三年级下册": "grade3_lower",
+  "小学四年级上册": "grade4_upper",
+  "小学四年级下册": "grade4_lower",
+  "小学五年级上册": "grade5_upper",
+  "小学五年级下册": "grade5_lower"
+};
+
+const APP_BASE_PATH = (() => {
+  let p = window.location.pathname || "/";
+  if (p.endsWith(".html")) {
+    p = p.slice(0, p.lastIndexOf("/") + 1);
+  } else if (!p.endsWith("/")) {
+    p = p + "/";
+  }
+  return p;
+})();
+
+function normalizeAudioWord(word){
+  return String(word || "")
+    .trim()
+    .toLowerCase()
+    .replace(/'/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+}
+
+function getCurrentUnitNumber(){
+  const match = String(state.unit || "").match(/(\d+)/);
+  return match ? match[1] : "1";
+}
+
+function getFixedAudioFolder(){
+  return fixedAudioBookFolderMap[state.book] || null;
+}
+
+function getFixedAudioFilename(current){
+  return `unit${getCurrentUnitNumber()}_${normalizeAudioWord(current.word)}.mp3`;
+}
+
+function getFixedAudioPath(lang, current){
+  const folder = getFixedAudioFolder();
+  if(!folder || !current) return "";
+  return `${APP_BASE_PATH}${folder}/${lang}/${getFixedAudioFilename(current)}`;
+}
+
+function stopPromptPlayback(){
+  promptPlayToken += 1;
+  if(currentPromptAudio){
+    try{
+      currentPromptAudio.pause();
+      currentPromptAudio.currentTime = 0;
+    }catch(e){}
+    currentPromptAudio = null;
+  }
+  if("speechSynthesis" in window){
+    window.speechSynthesis.cancel();
+  }
+}
+
+function speak(text){
+  if(!("speechSynthesis" in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = /[\u4e00-\u9fff]/.test(text) ? "zh-CN" : "en-US";
+  u.rate = 0.9;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(u);
+}
+
+function sleep(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function buildTtsUrl(text, lang){
+  const base = "https://translate.google.com/translate_tts";
+  return `${base}?ie=UTF-8&client=tw-ob&tl=${encodeURIComponent(lang)}&q=${encodeURIComponent(text)}`;
+}
+
+function isFixedAudioEnabled(current){
+  return !!(current && getFixedAudioFolder());
+}
+
+function getShortZhPrompt(current){
+  if(!current) return "";
+  return current.meaning;
+}
+
+function playAudioSource(src){
+  return new Promise((resolve, reject) => {
+    if(!src){ resolve(); return; }
+    const audio = new Audio();
+    audio.preload = "auto";
+    audio.src = src;
+    currentPromptAudio = audio;
+    const clear = () => {
+      if(currentPromptAudio === audio) currentPromptAudio = null;
+      audio.onended = null;
+      audio.onerror = null;
+      audio.oncanplaythrough = null;
+    };
+    audio.onended = () => { clear(); resolve(); };
+    audio.onerror = () => { clear(); reject(new Error("audio failed")); };
+    const playPromise = audio.play();
+    if(playPromise && typeof playPromise.then === "function"){
+      playPromise.catch(err => { clear(); reject(err); });
+    }
+  });
+}
+
+function playRemoteAudio(text, lang){
+  return playAudioSource(buildTtsUrl(text, lang));
+}
+
+async function speakWithAudioFirst(text, lang, token){
+  if(token !== promptPlayToken) return;
+  try{
+    await playRemoteAudio(text, lang);
+  }catch(e){
+    if(token !== promptPlayToken) return;
+    speak(text);
+    await sleep(/[\u4e00-\u9fff]/.test(text) ? 1200 : 900);
+  }
+}
+
+async function speakWithFixedFileFirst(src, fallbackText, fallbackLang, token){
+  if(token !== promptPlayToken) return;
+  try{
+    await playAudioSource(src);
+  }catch(e){
+    if(token !== promptPlayToken) return;
+    await speakWithAudioFirst(fallbackText, fallbackLang, token);
+  }
+}
+
+async function playPrompt(mode,current){
+  if(!current) return;
+  stopPromptPlayback();
+  const token = promptPlayToken;
+  if(isFixedAudioEnabled(current)){
+    const enSrc = getFixedAudioPath("en", current);
+    const zhSrc = getFixedAudioPath("zh", current);
+    const shortZh = getShortZhPrompt(current);
+    if(mode === "en"){
+      await speakWithFixedFileFirst(enSrc, current.word, "en", token);
+      if(token !== promptPlayToken) return;
+      await sleep(350);
+      if(token !== promptPlayToken) return;
+      await speakWithFixedFileFirst(zhSrc, shortZh, "zh-CN", token);
+    }else{
+      await speakWithFixedFileFirst(zhSrc, shortZh, "zh-CN", token);
+    }
+    return;
+  }
+  if(mode === "en"){
+    await speakWithAudioFirst(current.word, "en", token);
+    if(token !== promptPlayToken) return;
+    await sleep(350);
+    if(token !== promptPlayToken) return;
+    await speakWithAudioFirst(current.meaning, "zh-CN", token);
+  }else{
+    await speakWithAudioFirst(current.meaning, "zh-CN", token);
+  }
+}
+function saveLS(key,val){
+  localStorage.setItem(key, JSON.stringify(val));
+}
+function loadLS(key, fallback){
+  try{
+    const v = localStorage.getItem(key);
+    return v===null ? fallback : JSON.parse(v);
+  }catch{
+    return fallback;
+  }
+}
+function selectedWords(){ return state.words.filter(w=>w.selected); }
+function activeWords(){ return state.quizWords.length ? state.quizWords : selectedWords(); }
+function currentWord(){ return activeWords()[state.index]; }
+
+function hydrateFromLocal(){
+  state.points = loadLS(STORAGE_KEYS.points, 100);
+  state.wrongWords = loadLS(STORAGE_KEYS.wrongWords, []);
+  state.mastery = loadLS(STORAGE_KEYS.mastery, {});
+  state.petName = loadLS(STORAGE_KEYS.petName, "小鸡");
+  state.petMood = loadLS(STORAGE_KEYS.petMood, 50);
+}
+function persistCore(){
+  saveLS(STORAGE_KEYS.points, state.points);
+  saveLS(STORAGE_KEYS.wrongWords, state.wrongWords);
+  saveLS(STORAGE_KEYS.mastery, state.mastery);
+  saveLS(STORAGE_KEYS.petName, state.petName);
+  saveLS(STORAGE_KEYS.petMood, state.petMood);
+}
+function renderTopStats(){
+  $("pointsTop").textContent = state.points;
+  $("pointsHome").textContent = state.points;
+  $("wrongCountHome").textContent = state.wrongWords.length;
+  $("petPoints").textContent = state.points;
+  $("resultPoints").textContent = state.points;
+  $("resultWrongCount").textContent = state.wrongWords.length;
+}
+function setPage(page){
+  if(page !== "write") stopPromptPlayback();
+  state.page = page;
+  document.querySelectorAll(".page").forEach(el=>el.classList.add("hidden"));
+  $("page-"+page).classList.remove("hidden");
+  $("topBar").classList.toggle("hidden", page==="home");
+  refreshBottomNav();
+  if(page==="home") renderHome();
+  if(page==="setup") renderSetup();
+  if(page==="mode") renderMode();
+  if(page==="write") renderWrite();
+  if(page==="review") renderReview();
+  if(page==="result") renderResult();
+  if(page==="wrongbook") renderWrongbook();
+  if(page==="pet") renderPet();
+}
+function refreshBottomNav(){
+  const reset = ["navHome","navWrong","navPet"];
+  reset.forEach(id=>$(id).className="btn outline");
+  if(state.page==="home") $("navHome").className="btn";
+  if(state.page==="wrongbook") $("navWrong").className="btn warn";
+  if(state.page==="pet") $("navPet").className="btn";
+}
+function renderHome(){
+  renderTopStats();
+}
+function fillBookSelect(){
+  const bookSel = $("bookSelect");
+  bookSel.innerHTML = Object.keys(textbookOptions).map(k=>`<option value="${k}">${k}</option>`).join("");
+  bookSel.value = state.book;
+  fillUnitSelect();
+}
+function fillUnitSelect(){
+  const unitSel = $("unitSelect");
+  const units = Object.keys(textbookOptions[state.book]);
+  unitSel.innerHTML = units.map(k=>`<option value="${k}">${k}</option>`).join("");
+  if(!units.includes(state.unit)) state.unit = units[0];
+  unitSel.value = state.unit;
+}
+function loadBuiltinWords(){
+  state.words = clone(textbookOptions[state.book][state.unit] || []).map(x=>({...x,selected:true}));
+  renderWordList();
+}
+function parseManualWords(){
+  const text = $("manualInput").value.trim();
+  state.inputText = text;
+  const parsed = text.split("\n").map(line=>line.trim()).filter(Boolean).map(line=>{
+    const parts = line.split(/\s+/);
+    return {word: parts[0]||"", meaning: parts.slice(1).join(" ")||"未填写中文", selected:true};
+  }).filter(item=>item.word);
+  if(parsed.length) state.words = parsed;
+  renderWordList();
+}
+function renderWordList(){
+  $("selectedCount").textContent = selectedWords().length;
+  $("totalCount").textContent = state.words.length;
+  const list = $("wordList");
+  list.innerHTML = "";
+  state.words.forEach((item,idx)=>{
+    const div = document.createElement("button");
+    div.className = "word-item" + (item.selected ? " selected" : "");
+    div.innerHTML = `<div><div class="w">${escapeHtml(item.word)}</div><div class="small muted" style="margin-top:4px">${escapeHtml(item.meaning)}</div></div><div>✓</div>`;
+    div.onclick = () => {
+      state.words[idx].selected = !state.words[idx].selected;
+      renderWordList();
+    };
+    list.appendChild(div);
+  });
+}
+function renderSetup(){
+  $("setupDesc").textContent = state.setupMode==="manual"
+    ? "按照方框里的样例，手动填入单词来源。在下面单词表里，勾选需要听写的单词。"
+    : "选择教材、单元，生成并勾选要听写的单词。";
+  $("builtinSetup").classList.toggle("hidden", state.setupMode!=="builtin");
+  $("manualSetup").classList.toggle("hidden", state.setupMode!=="manual");
+  fillBookSelect();
+  $("manualInput").value = state.inputText || $("manualInput").value;
+  renderWordList();
+}
+function renderMode(){
+  $("mode-en").classList.toggle("active", state.mode==="en");
+  $("mode-cn").classList.toggle("active", state.mode==="cn");
+  $("input-draw").classList.toggle("active", state.inputMode==="draw");
+  $("input-type").classList.toggle("active", state.inputMode==="type");
+  $("modeWordCount").textContent = selectedWords().length;
+}
+function beginQuizFromCurrentSelection(){
+  if(!selectedWords().length){
+    alert("请先至少勾选 1 个单词。");
+    return;
+  }
+  state.quizWords = shuffleArray(selectedWords());
+  state.index = 0;
+  state.typed = "";
+  state.typedAnswers = {};
+  state.reviewResults = {};
+  state.handwrittenShots = {};
+  clearCanvas();
+  setPage("write");
+}
+function saveCurrentWork(){
+  const current = currentWord();
+  if(!current) return;
+  if(state.inputMode==="draw"){
+    const img = getCanvasImage();
+    if(img) state.handwrittenShots[current.word] = img;
+  }else{
+    state.typedAnswers[current.word] = $("typedInput").value.trim().toLowerCase();
+  }
+}
+function renderWrite(){
+  const current = currentWord();
+  if(!current){
+    setPage("home");
+    return;
+  }
+  const total = activeWords().length;
+  const progress = total ? ((state.index+1)/total)*100 : 0;
+  $("progressBar").style.width = progress + "%";
+  $("writeIndexText").textContent = `第 ${state.index+1} / ${total} 个`;
+  $("inputTag").textContent = state.inputMode==="draw" ? "手写" : "键盘";
+  $("writeHint").textContent = state.inputMode==="draw" ? "先听，再在下方手写区默写单词。" : "先听，再用键盘输入单词。";
+  $("drawArea").classList.toggle("hidden", state.inputMode!=="draw");
+  $("clearCanvasBtn").classList.toggle("hidden", state.inputMode!=="draw");
+  $("typeArea").classList.toggle("hidden", state.inputMode!=="type");
+  $("prevBtn").disabled = state.index===0;
+  $("nextBtn").textContent = state.index < total-1 ? "下一个" : (state.inputMode==="type" ? "完成并自动核对" : "去核对答案");
+  if(state.inputMode==="type"){
+    $("typedInput").value = state.typedAnswers[current.word] || "";
+  }else{
+    clearCanvas();
+  }
+}
+function finishTypeResult(){
+  const answers = {...state.typedAnswers};
+  const resultMap = {};
+  let correct = 0;
+  const wrongs = [];
+  activeWords().forEach(w=>{
+    const ok = (answers[w.word] || "") === w.word.toLowerCase();
+    resultMap[w.word] = ok;
+    if(ok){
+      correct += 1;
+      state.mastery[w.word] = (state.mastery[w.word] || 0) + 1;
+    }else{
+      wrongs.push(w.word);
+      state.mastery[w.word] = 0;
+    }
+  });
+  state.reviewResults = resultMap;
+  state.wrongWords = Array.from(new Set([...state.wrongWords, ...wrongs]));
+  state.points += correct * 2;
+  persistCore();
+  setPage("result");
+}
+function finishDrawPrepareReview(){
+  const init = {};
+  activeWords().forEach(w=> init[w.word] = true);
+  state.reviewResults = init;
+  setPage("review");
+}
+function renderReview(){
+  const list = $("reviewList");
+  list.innerHTML = "";
+  activeWords().forEach(item=>{
+    const ok = state.reviewResults[item.word];
+    const wrap = document.createElement("div");
+    wrap.className = "review-item";
+    wrap.innerHTML = `
+      <div class="stats" style="align-items:flex-start;gap:10px">
+        <div>
+          <div style="font-size:22px;font-weight:700">${escapeHtml(item.word)}</div>
+          <div class="small muted" style="margin-top:4px">${escapeHtml(item.meaning)}</div>
+        </div>
+        <div class="toolbar" style="justify-content:flex-end">
+          <button class="btn outline small preview-btn">查看我写的</button>
+          <button class="btn small ok-btn ${ok===true?'':'outline'}">对</button>
+          <button class="btn small bad-btn ${ok===false?'warn':''} ${ok===false?'':'outline'}">错</button>
+        </div>
+      </div>
+    `;
+    wrap.querySelector(".preview-btn").onclick = ()=> openPreview(item.word);
+    wrap.querySelector(".ok-btn").onclick = ()=>{ state.reviewResults[item.word]=true; renderReview(); };
+    wrap.querySelector(".bad-btn").onclick = ()=>{ state.reviewResults[item.word]=false; renderReview(); };
+    list.appendChild(wrap);
+  });
+}
+function finishReview(){
+  let correct = 0;
+  const wrongs = [];
+  activeWords().forEach(w=>{
+    if(state.reviewResults[w.word]){
+      correct += 1;
+      state.mastery[w.word] = (state.mastery[w.word] || 0) + 1;
+    }else{
+      wrongs.push(w.word);
+      state.mastery[w.word] = 0;
+    }
+  });
+  state.wrongWords = Array.from(new Set([...state.wrongWords, ...wrongs]));
+  state.points += correct * 2;
+  persistCore();
+  setPage("result");
+}
+function renderResult(){
+  renderTopStats();
+  const list = $("resultList");
+  const detailWrap = $("resultDetailWrap");
+  if(state.inputMode==="type" && Object.keys(state.reviewResults).length){
+    detailWrap.classList.remove("hidden");
+    list.innerHTML = "";
+    activeWords().forEach(item=>{
+      const ok = state.reviewResults[item.word];
+      const userAnswer = state.typedAnswers[item.word] || "（未输入）";
+      const div = document.createElement("div");
+      div.className = "result-item " + (ok ? "ok" : "bad");
+      div.style.marginBottom = "8px";
+      div.innerHTML = `
+        <div class="stats" style="align-items:flex-start;gap:10px">
+          <div>
+            <div style="font-weight:700">${escapeHtml(item.word)}</div>
+            <div class="tiny muted" style="margin-top:4px">中文：${escapeHtml(item.meaning)}</div>
+            <div class="tiny muted" style="margin-top:4px">你的答案：${escapeHtml(userAnswer)}</div>
+          </div>
+          <div class="tag" style="background:${ok?'#dff7e6':'#fde5e5'};color:${ok?'#18794e':'#b53b3b'}">${ok?'正确':'错误'}</div>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }else{
+    detailWrap.classList.add("hidden");
+    list.innerHTML = "";
+  }
+}
+function renderWrongbook(){
+  const empty = $("wrongbookEmpty");
+  const list = $("wrongbookList");
+  const btn = $("practiceWrongBtn");
+  if(!state.wrongWords.length){
+    empty.classList.remove("hidden");
+    list.classList.add("hidden");
+    btn.classList.add("hidden");
+    return;
+  }
+  empty.classList.add("hidden");
+  list.classList.remove("hidden");
+  btn.classList.remove("hidden");
+  list.innerHTML = "";
+  state.wrongWords.forEach(word=>{
+    const m = state.mastery[word] || 0;
+    const canRemove = m >= 2;
+    const meaning = findMeaning(word);
+    const div = document.createElement("div");
+    div.className = "wrong-item";
+    div.innerHTML = `
+      <div class="stats" style="align-items:flex-start;gap:10px">
+        <div>
+          <div style="font-weight:700">${escapeHtml(word)}</div>
+          <div class="small muted" style="margin-top:4px">${escapeHtml(meaning || "错词")}</div>
+          <div class="tiny" style="margin-top:4px;color:#c24a4a">掌握度 ${m}/2</div>
+        </div>
+        <button class="btn small ${canRemove ? '' : 'outline'}" ${canRemove ? '' : 'disabled'}>移除</button>
+      </div>
+    `;
+    div.querySelector("button").onclick = ()=>{
+      if(!canRemove) return;
+      state.wrongWords = state.wrongWords.filter(w=>w!==word);
+      persistCore();
+      renderWrongbook();
+      renderTopStats();
+    };
+    list.appendChild(div);
+  });
+}
+function getPetStatusText(){
+  if(state.petMood <= 30) return "有点饿，不太开心";
+  if(state.petMood <= 70) return "状态正常";
+  return "吃得很饱，很开心";
+}
+const happyMessages = ["我好开心呀～", "谢谢主人来看我", "今天也要加油哦"];
+const hungryMessages = ["主人我饿了，快来喂我", "我肚子饿啦～", "快给我一点吃的吧"];
+function chirp(happy=false){
+  try{
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const seq = happy
+      ? [[1100,1500,0],[1300,1700,.12],[1500,1900,.24]]
+      : [[900,1200,0],[900,1200,.18]];
+    seq.forEach(([s,e,delay])=>{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = ctx.currentTime + delay;
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(s,t);
+      osc.frequency.exponentialRampToValueAtTime(e,t+.08);
+      gain.gain.setValueAtTime(.001,t);
+      gain.gain.exponentialRampToValueAtTime(happy?.09:.08,t+.01);
+      gain.gain.exponentialRampToValueAtTime(.001,t+.12);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t+.12);
+    });
+  }catch(e){}
+}
+function animatePet(message,happy=false){
+  $("petBubble").textContent = message;
+  $("petBubble").classList.remove("hidden");
+  $("petEmoji").classList.add("anim");
+  chirp(happy);
+  setTimeout(()=>$("petEmoji").classList.remove("anim"),450);
+  setTimeout(()=>$("petBubble").classList.add("hidden"),2200);
+}
+function renderPet(){
+  renderTopStats();
+  $("petNameText").textContent = state.petName;
+  $("petStatusText").textContent = getPetStatusText();
+  $("petMoodBar").style.width = state.petMood + "%";
+  $("feedPetBtn").disabled = state.points < 10;
+}
+function openPreview(word){
+  state.previewWord = word;
+  $("previewTitle").textContent = word;
+  const img = state.handwrittenShots[word];
+  if(img){
+    $("previewImg").src = img;
+    $("previewImg").classList.remove("hidden");
+    $("previewEmpty").classList.add("hidden");
+  }else{
+    $("previewImg").classList.add("hidden");
+    $("previewEmpty").classList.remove("hidden");
+  }
+  $("previewOverlay").classList.remove("hidden");
+}
+function findMeaning(word){
+  for(const bookName of Object.keys(textbookOptions)){
+    for(const unitName of Object.keys(textbookOptions[bookName])){
+      const found = (textbookOptions[bookName][unitName] || []).find(x=>x.word===word);
+      if(found) return found.meaning;
+    }
+  }
+  const found2 = state.words.find(x=>x.word===word);
+  return found2 ? found2.meaning : "";
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[s]));
+}
+
+/* ===== Canvas ===== */
+let drawing = false;
+const canvas = $("drawCanvas");
+const ctx = canvas.getContext("2d");
+function initCanvas(){
+  const ratio = window.devicePixelRatio || 1;
+  const w = Math.max(320, canvas.getBoundingClientRect().width);
+  const h = 260;
+  canvas.width = w * ratio;
+  canvas.height = h * ratio;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(ratio, ratio);
+  drawCanvasBackground(w,h);
+}
+function drawCanvasBackground(w,h){
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = "#ebe6fb";
+  ctx.lineWidth = 1;
+  [52,104,156,208].forEach(y=>{
+    ctx.beginPath();
+    ctx.moveTo(16,y);
+    ctx.lineTo(w-16,y);
+    ctx.stroke();
+  });
+  ctx.strokeStyle = "#2f2f35";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+}
+function clearCanvas(){
+  initCanvas();
+  state.drawHasInk = false;
+}
+function getPoint(e){
+  const rect = canvas.getBoundingClientRect();
+  if(e.touches && e.touches[0]){
+    return { x:e.touches[0].clientX - rect.left, y:e.touches[0].clientY - rect.top };
+  }
+  return { x:e.clientX - rect.left, y:e.clientY - rect.top };
+}
+function startDraw(e){
+  drawing = true;
+  const {x,y} = getPoint(e);
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+}
+function moveDraw(e){
+  if(!drawing) return;
+  e.preventDefault();
+  const {x,y} = getPoint(e);
+  ctx.lineTo(x,y);
+  ctx.stroke();
+  state.drawHasInk = true;
+}
+function endDraw(){ drawing = false; }
+function getCanvasImage(){
+  try{ return canvas.toDataURL("image/png"); }catch{ return null; }
+}
+
+/* ===== Events ===== */
+function bindEvents(){
+  $("loginBtn").onclick = ()=>{
+    const pwd = $("passwordInput").value.trim();
+    if(pwd === APP_PASSWORD){
+      $("loginError").style.display = "none";
+      saveLS(STORAGE_KEYS.authed, true);
+      $("loginPage").classList.add("hidden");
+      $("appPage").classList.remove("hidden");
+      setPage("home");
+    }else{
+      $("loginError").style.display = "block";
+    }
+  };
+  $("passwordInput").addEventListener("keydown", e=>{ if(e.key==="Enter") $("loginBtn").click(); });
+
+  $("goBuiltin").onclick = ()=>{ state.setupMode = "builtin"; setPage("setup"); };
+  $("goManual").onclick = ()=>{ state.setupMode = "manual"; setPage("setup"); };
+
+  $("bookSelect").onchange = e=>{
+    state.book = e.target.value;
+    const units = Object.keys(textbookOptions[state.book]);
+    state.unit = units[0];
+    fillUnitSelect();
+  };
+  $("unitSelect").onchange = e=>{ state.unit = e.target.value; };
+  $("loadBuiltinBtn").onclick = loadBuiltinWords;
+  $("parseManualBtn").onclick = parseManualWords;
+  $("selectAllBtn").onclick = ()=>{
+    state.words = state.words.map(x=>({...x,selected:true}));
+    renderWordList();
+  };
+  $("clearAllBtn").onclick = ()=>{
+    state.words = state.words.map(x=>({...x,selected:false}));
+    renderWordList();
+  };
+  $("toModeBtn").onclick = ()=>{
+    if(!selectedWords().length){
+      alert("请至少勾选一个单词。");
+      return;
+    }
+    setPage("mode");
+  };
+
+  $("mode-en").onclick = ()=>{ state.mode="en"; renderMode(); };
+  $("mode-cn").onclick = ()=>{ state.mode="cn"; renderMode(); };
+  $("input-draw").onclick = ()=>{ state.inputMode="draw"; renderMode(); };
+  $("input-type").onclick = ()=>{ state.inputMode="type"; renderMode(); };
+  $("startWriteBtn").onclick = beginQuizFromCurrentSelection;
+
+  $("playBtn").onclick = ()=> playPrompt(state.mode, currentWord());
+  $("clearCanvasBtn").onclick = clearCanvas;
+  $("prevBtn").onclick = ()=>{
+    if(state.index===0) return;
+    saveCurrentWork();
+    state.index = Math.max(0,state.index-1);
+    renderWrite();
+  };
+  $("nextBtn").onclick = ()=>{
+    const current = currentWord();
+    if(!current) return;
+    if(state.inputMode==="type"){
+      if(!$("typedInput").value.trim()){
+        const ok = confirm("还没有输入答案，确定跳过这一题吗？");
+        if(!ok) return;
+      }
+    }else{
+      if(!state.drawHasInk){
+        const ok = confirm("这一题还没有手写内容，确定跳过吗？");
+        if(!ok) return;
+      }
+    }
+    saveCurrentWork();
+    if(state.index < activeWords().length - 1){
+      state.index += 1;
+      renderWrite();
+      return;
+    }
+    if(state.inputMode==="type"){
+      finishTypeResult();
+    }else{
+      finishDrawPrepareReview();
+    }
+  };
+  $("finishReviewBtn").onclick = finishReview;
+  $("resultHomeBtn").onclick = ()=> setPage("home");
+
+  $("practiceWrongBtn").onclick = ()=>{
+    const wrongList = Array.from(new Set(state.wrongWords)).map(word=>({
+      word,
+      meaning: findMeaning(word) || "错词",
+      selected: true
+    }));
+    if(!wrongList.length) return;
+    state.words = wrongList;
+    setPage("mode");
+  };
+
+  $("petEmoji").onclick = ()=>{
+    const pool = state.petMood <= 30 ? hungryMessages : happyMessages;
+    const msg = pool[Math.floor(Math.random()*pool.length)];
+    animatePet(msg, false);
+  };
+  $("feedPetBtn").onclick = ()=>{
+    if(state.points < 10) return;
+    state.points -= 10;
+    state.petMood = Math.min(state.petMood + 20, 100);
+    persistCore();
+    renderPet();
+    renderTopStats();
+    animatePet("吃饱啦！谢谢主人～", true);
+  };
+
+  $("navHome").onclick = ()=> tryGoHome();
+  $("navWrong").onclick = ()=> setPage("wrongbook");
+  $("navPet").onclick = ()=> setPage("pet");
+  $("homeBtnTop").onclick = ()=> tryGoHome();
+
+  $("closePreviewBtn").onclick = ()=> $("previewOverlay").classList.add("hidden");
+  $("cancelExitBtn").onclick = ()=> $("confirmOverlay").classList.add("hidden");
+  $("confirmExitBtn").onclick = ()=>{
+    $("confirmOverlay").classList.add("hidden");
+    state.quizWords = [];
+    state.index = 0;
+    state.typedAnswers = {};
+    state.reviewResults = {};
+    state.handwrittenShots = {};
+    setPage("home");
+  };
+
+  canvas.addEventListener("mousedown", startDraw);
+  canvas.addEventListener("mousemove", moveDraw);
+  canvas.addEventListener("mouseup", endDraw);
+  canvas.addEventListener("mouseleave", endDraw);
+  canvas.addEventListener("touchstart", startDraw, {passive:false});
+  canvas.addEventListener("touchmove", moveDraw, {passive:false});
+  canvas.addEventListener("touchend", endDraw, {passive:false});
+  window.addEventListener("resize", ()=>{
+    if(state.page==="write" && state.inputMode==="draw") clearCanvas();
+  });
+}
+function tryGoHome(){
+  const inProgress = state.page==="write" || state.page==="review";
+  if(inProgress){
+    $("confirmOverlay").classList.remove("hidden");
+  }else{
+    setPage("home");
+  }
+}
+
+function init(){
+  hydrateFromLocal();
+  renderTopStats();
+  bindEvents();
+  initCanvas();
+  if(loadLS(STORAGE_KEYS.authed,false) === true){
+    $("loginPage").classList.add("hidden");
+    $("appPage").classList.remove("hidden");
+    setPage("home");
+  }
+  setInterval(()=>{
+    state.petMood = Math.max(state.petMood - 1, 0);
+    saveLS(STORAGE_KEYS.petMood, state.petMood);
+    if(state.page==="pet") renderPet();
+  },15000);
+}
+init();
+</script>
+</body>
+</html>
