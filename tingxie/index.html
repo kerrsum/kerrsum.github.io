@@ -1,0 +1,317 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>葛老师AI单词听写</title>
+  <style>
+    :root{
+      --bg1:#fbf8ff;
+      --bg2:#f7f3ff;
+      --bg3:#eef6ff;
+      --card:#ffffffee;
+      --line:#ece7fb;
+      --primary:#7c69ff;
+      --primary-dark:#6d5bf0;
+      --text:#2f2f35;
+      --muted:#7d7794;
+      --soft:#faf7ff;
+      --danger:#ffb4b4;
+      --warning:#fff2ca;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      min-height:100vh;
+      background:linear-gradient(to bottom,var(--bg1),var(--bg2),var(--bg3));
+      color:var(--text);
+    }
+    .app{max-width:460px;margin:0 auto;padding:16px 16px 110px}
+    .card{
+      background:var(--card);
+      border-radius:28px;
+      box-shadow:0 12px 30px rgba(124,105,255,.12);
+      overflow:hidden;
+      border:none;
+    }
+    .hero{
+      padding:24px;
+      background:linear-gradient(90deg,#fff4df,#f8f1ff,#eef7ff);
+    }
+    .content{padding:20px}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+      background:#fff;
+      color:var(--primary);
+    }
+    h1,h2,h3,p{margin:0}
+    h1{font-size:30px;line-height:1.2}
+    h2{font-size:26px;line-height:1.2}
+    p.sub{margin-top:10px;color:#756f8a;line-height:1.7;font-size:14px}
+    .section{margin-top:16px}
+    .btn{
+      width:100%;
+      height:52px;
+      border:none;
+      border-radius:20px;
+      background:var(--primary);
+      color:#fff;
+      font-size:16px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn:hover{background:var(--primary-dark)}
+    .btn.outline{
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+    .btn.soft{
+      background:#f5f2ff;
+      color:#5748b6;
+    }
+    .btn.warn{
+      background:var(--danger);
+      color:#fff;
+    }
+    .btn.small{
+      height:38px;
+      font-size:14px;
+      border-radius:16px;
+      padding:0 14px;
+      width:auto;
+    }
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .stack{display:flex;flex-direction:column;gap:12px}
+    .box{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:22px;
+      padding:14px;
+    }
+    .softbox{
+      border-radius:22px;
+      background:var(--soft);
+      padding:16px;
+    }
+    .center{text-align:center}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .tiny{font-size:11px}
+    .stats{
+      display:flex;justify-content:space-between;color:#8d86a4;font-size:14px;
+    }
+    select,textarea,input[type="text"],input[type="password"]{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      font-size:14px;
+      outline:none;
+      background:#fcfbff;
+      color:var(--text);
+    }
+    textarea{min-height:120px;resize:vertical}
+    .list{
+      display:flex;flex-direction:column;gap:10px;max-height:360px;overflow:auto;padding-right:4px;
+    }
+    .word-item{
+      display:flex;justify-content:space-between;gap:10px;
+      padding:14px;border-radius:18px;border:1px solid var(--line);background:#fff;cursor:pointer;
+    }
+    .word-item.selected{background:#f5f2ff;border-color:var(--primary)}
+    .word-item .w{font-weight:700}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;
+    }
+    .pill{
+      background:var(--warning);
+      color:#7e6200;
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .progress-wrap{height:12px;background:#ece6ff;border-radius:999px;overflow:hidden}
+    .progress{height:100%;background:linear-gradient(90deg,#7c69ff,#9a8bff);width:0%}
+    .mode-card{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:22px;
+      padding:14px;
+      cursor:pointer;
+    }
+    .mode-card.active{background:#f4f1ff;border-color:var(--primary)}
+    canvas{
+      width:100%;height:260px;background:#fff;border-radius:20px;touch-action:none;
+      display:block;
+    }
+    .canvas-wrap{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:24px;
+      padding:12px;
+      box-shadow:0 4px 12px rgba(124,105,255,.05);
+    }
+    .bottom-nav{
+      position:fixed;left:0;right:0;bottom:0;
+      border-top:1px solid var(--line);background:rgba(255,255,255,.95);
+      backdrop-filter:blur(8px);padding:12px 16px;z-index:40;
+    }
+    .bottom-nav .inner{max-width:460px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .hidden{display:none!important}
+    .row{display:flex;gap:10px}
+    .row>*{flex:1}
+    .scroll{max-height:420px;overflow:auto;padding-right:4px}
+    .review-item,.result-item,.wrong-item{
+      border:1px solid var(--line);background:#fcfbff;border-radius:20px;padding:14px;
+    }
+    .ok{background:#f5fff7;border-color:#d9f2df}
+    .bad{background:#fff7f7;border-color:#f5dede}
+    .pet-emoji{
+      font-size:82px;cursor:pointer;user-select:none;transition:transform .25s ease;
+      display:inline-block;
+    }
+    .pet-emoji.anim{transform:translateY(-8px) scale(1.1)}
+    .bubble{
+      display:inline-block;padding:10px 14px;background:#fff;border:1px solid var(--line);
+      border-radius:999px;font-size:14px;color:#6f6788;box-shadow:0 6px 14px rgba(0,0,0,.08);margin-bottom:10px;
+    }
+    .overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;
+      padding:16px;z-index:100;
+    }
+    .dialog{width:100%;max-width:420px;background:#fff;border-radius:26px;padding:18px;box-shadow:0 18px 40px rgba(0,0,0,.22)}
+    .preview-img{width:100%;border-radius:16px;background:#fff}
+    .login{
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;
+    }
+    .tag{display:inline-block;padding:4px 10px;border-radius:999px;background:#f7f2ff;color:#7766cf;font-size:13px;font-weight:700}
+    .notice{font-size:12px;color:#9b94b0;line-height:1.7;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div id="loginPage" class="login">
+    <div class="app" style="padding-bottom:16px">
+      <div class="card">
+        <div class="hero">
+          <div class="badge">🔒 访问入口</div>
+          <h1 style="margin-top:14px">葛老师AI单词听写</h1>
+          <p class="sub">这是可直接部署到 Netlify 的单文件版本。先输入访问密码，再进入小程序。</p>
+        </div>
+        <div class="content stack">
+          <div class="box">
+            <div class="small muted" style="margin-bottom:8px">请输入访问密码</div>
+            <input id="passwordInput" type="password" placeholder="请输入密码" />
+            <div class="notice">
+              当前默认密码：<b>123456</b><br>
+              你后面可以直接在这个 HTML 文件里搜索 <b>APP_PASSWORD</b> 修改成你自己的密码。<br>
+              这个密码门是“基础防护”，能挡住随手转发，但不是专业级防盗版。
+            </div>
+          </div>
+          <button class="btn" id="loginBtn">进入小程序</button>
+          <div id="loginError" class="small" style="color:#b53b3b;display:none">密码不对，请重新输入。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="appPage" class="hidden">
+    <div class="app">
+      <div id="topBar" class="topbar hidden">
+        <button class="btn outline small" id="homeBtnTop">🏠 首页</button>
+        <div class="pill">⭐ <span id="pointsTop">100</span></div>
+      </div>
+
+      <div id="page-home" class="page">
+        <div class="card">
+          <div class="hero">
+            <div class="badge">✨ 葛老师AI提效 · 听写更省心</div>
+            <h1 style="margin-top:14px">AI单词听写</h1>
+            <p class="sub">一键开始听写，减少家长陪学成本。</p>
+          </div>
+          <div class="content stack">
+            <div class="softbox center">
+              <p class="muted" style="font-size:18px">今天要听写哪些单词？</p>
+            </div>
+            <button class="btn" id="goBuiltin">📘 课本单词听写</button>
+            <button class="btn outline" id="goManual">✍️ 自定义单词听写</button>
+            <div class="stats">
+              <div>积分：<span id="pointsHome">100</span></div>
+              <div>错词：<span id="wrongCountHome">0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-setup" class="page hidden">
+        <div class="card">
+          <div class="hero">
+            <h2>选择单词</h2>
+            <p class="sub" id="setupDesc"></p>
+          </div>
+          <div class="content stack">
+            <div class="box">
+              <div id="builtinSetup">
+                <div class="grid2">
+                  <div class="box" style="padding:12px">
+                    <div class="tiny muted" style="margin-bottom:6px">教材</div>
+                    <select id="bookSelect"></select>
+                  </div>
+                  <div class="box" style="padding:12px">
+                    <div class="tiny muted" style="margin-bottom:6px">单元</div>
+                    <select id="unitSelect"></select>
+                  </div>
+                </div>
+                <div class="section">
+                  <button class="btn small" id="loadBuiltinBtn">生成单词表</button>
+                </div>
+              </div>
+              <div id="manualSetup" class="hidden">
+                <textarea id="manualInput">beside 在……旁边
+bridge 桥
+market 市场
+winter 冬天
+through 穿过</textarea>
+                <div class="section">
+                  <button class="btn small" id="parseManualBtn">生成单词表</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="box">
+              <div class="stats" style="margin-bottom:10px">
+                <div>单词表</div>
+                <div>已选 <span id="selectedCount">0</span> / <span id="totalCount">0</span></div>
+              </div>
+              <div class="toolbar" style="margin-bottom:10px">
+                <button class="btn outline small" id="selectAllBtn">全选</button>
+                <button class="btn outline small" id="clearAllBtn">取消全选</button>
+              </div>
+              <div id="wordList" class="list"></div>
+            </div>
+
+            <button class="btn" id="toModeBtn">🚀 下一步</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // 在此添加与音频和路径相关的逻辑
+    const audioPath = "https://kerrsum.github.io/tingxie/grade3_upper/en/unit1_arm.mp3";
+    // ...
+  </script>
+</body>
+</html>
